@@ -1,0 +1,36 @@
+-- Fill NULL values from column "visit_date"
+UPDATE restaurants_visitors
+SET visit_date=date(visit_datetime)
+WHERE visit_date IS NULL;
+
+-- Question 1
+select r.id, avg(r.reserve_visitors) as Avg_num_vist
+from restaurants_visitors r
+join date_info d
+on d.calendar_date = r.visit_date
+where d.holiday_flg = 1
+group by r.id
+order by avg(r.reserve_visitors) desc
+limit 5;
+
+-- Question 2
+select d.day_of_week,avg(r.reserve_visitors)
+from restaurants_visitors r
+join date_info d
+on d.calendar_date = r.visit_date
+group by d.day_of_week
+order by avg(r.reserve_visitors) desc
+limit 1;
+
+-- Question 3
+select *,
+lead (num_visitors) over () as Previous_num_visitors,
+num_visitors/lead (num_visitors) over () -1 as Pct_change
+from (
+select year(visit_date) as year ,week(visit_date) as week,
+sum(reserve_visitors) as num_visitors
+from restaurants_visitors
+group by year(visit_date), week(visit_date)
+order by year(visit_date) desc, week(visit_date) desc
+limit 5) as T
+limit 4;
